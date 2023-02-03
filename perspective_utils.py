@@ -15,10 +15,16 @@ def birdeye(img, verbose=False):
     """
     h, w = img.shape[:2]
 
+    pengurang = int(150)
+    node_b = int(w/2-pengurang)
+    node_c = int(w/2+pengurang)
+    h_trap = int(h/2)
+
+
     src = np.float32([[w, h-10],    # br
                       [0, h-10],    # bl
-                      [546, 460],   # tl
-                      [732, 460]])  # tr
+                      [node_b, h_trap],   # tl
+                      [node_c, h_trap]])  # tr
     dst = np.float32([[w, h],       # br
                       [0, h],       # bl
                       [0, 0],       # tl

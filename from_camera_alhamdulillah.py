@@ -133,9 +133,19 @@ if __name__ == '__main__':
     # first things first: calibrate the camera
     ret, mtx, dist, rvecs, tvecs = calibrate_camera(calib_images_dir='camera_cal')
 
+    # cam = cv2.VideoCapture('3_out_video.mp4')
     cam = cv2.VideoCapture(0)
-    cam.set(4, 1280)  # set Width
-    cam.set(3, 720)  # set Height
+    # cam.set(4, 1280)  # set Width
+    # cam.set(3, 720)  # set Height
+    cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+
+    # w = int(1280)
+    # h = int(720)
+    # pengurang = int(150)
+    # node_b = int(w-pengurang)
+    # node_c = int(w+pengurang)
+    # h_trap = int(h/2)
 
     if not cam.isOpened():
         print("Cannot open camera")
@@ -147,14 +157,31 @@ if __name__ == '__main__':
         if not _:
             print("Can't receive frame (stream end?). Exiting ...")
             break
-
+        
         result = process_pipeline(image)
 
+        h, w = result.shape[:2]
+        pengurang = int(150)
+        node_b = int(w/2-pengurang)
+        node_c = int(w/2+pengurang)
+        h_trap = int(h/2)
+        print(h,w,node_b,node_c)
+
+
+        cv2.line(result,(0,int(h)-int(10)),(node_b,h_trap),(0,255,0),3) # Sisi A
+        cv2.line(result,(node_b,h_trap),(node_c,h_trap,),(0,255,0),3) # Sisi node B-C
+        cv2.line(result,(node_c,h_trap),(int(w),int(h)-int(10)),(0,255,0),3) # Sisi turun
+
         cv2.imshow("Result", result)
+        # cv2.imshow("Result", image)
+
+        # Debug
+        # cv2.imshow("Asal", image)
+
         if cv2.waitKey(1) & 0xFF == 27:
             print("Escape hit, closing...")
             break
-    
+
     cam.release()
     cv2.destroyAllWindows()
 
