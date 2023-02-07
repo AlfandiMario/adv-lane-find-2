@@ -15,7 +15,7 @@ def birdeye(img, verbose=False):
     """
     h, w = img.shape[:2]
 
-    pengurang = int(150)
+    pengurang = int(94)
     node_b = int(w/2-pengurang)
     node_c = int(w/2+pengurang)
     h_trap = int(h/2)

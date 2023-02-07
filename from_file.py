@@ -138,13 +138,13 @@ if __name__ == '__main__':
      mode = 'image'
 
      if mode == 'video':
-          selector = '2_project'
+          selector = '3_out'
           clip = VideoFileClip('{}_video.mp4'.format(selector)).fl_image(process_pipeline)
           clip.write_videofile('out_{}_{}.mp4'.format(selector, time_window), audio=False)
 
      else:
 
-          test_img_dir = 'test_images\jalanindo3.png'
+          test_img_dir = 'test_images\straight_lines1.jpg'
 
           frame = cv2.imread(test_img_dir)
 

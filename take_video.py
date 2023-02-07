@@ -19,26 +19,19 @@ while True:
     image2 = np.copy(image)
 
     # This time we are defining a four sided polygon to mask
-    imshape = image.shape
-    height = image.shape[0]
-    width = image.shape[1]
-    
-    node_b= int(546)
-    node_c= int(732)
-    t_trap= int(460)
+    h, w = image2.shape[:2]
+    pengurang = int(150)
+    node_b = int(w/2-pengurang)
+    node_c = int(w/2+pengurang)
+    h_trap = int(h/2)
+    print(h,w,node_b,node_c)
 
-    # Positioning
-    pos_x = int(width/2)
-    pos_y = int(9/10*height)
-    cv2.circle(image2, (pos_x, pos_y), radius=10, color=(0, 0, 255), thickness=-10)
 
-    cv2.line(image2,(0,int(height)-int(10)),(node_b,t_trap),(0,0,255),3) # Sisi A
-    cv2.line(image2,(node_b,t_trap),(node_c,t_trap,),(0,0,255),3) # Sisi node B-C
-    cv2.line(image2,(node_c,t_trap),(int(width),int(height)-int(10)),(0,0,255),3) # Sisi turun
+    cv2.line(image2,(0,int(h)-int(10)),(node_b,h_trap),(0,255,0),3) # Sisi A
+    cv2.line(image2,(node_b,h_trap),(node_c,h_trap,),(0,255,0),3) # Sisi node B-C
+    cv2.line(image2,(node_c,h_trap),(int(w),int(h)-int(10)),(0,255,0),3) # Sisi turun
 
-    result = cv2.addWeighted(image, 0.8, image2, 1, 0)
-
-    cv2.imshow('Result', result)
+    cv2.imshow('Result', image2)
 
     writer.write(image)
 
