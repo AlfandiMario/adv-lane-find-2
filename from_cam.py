@@ -1,12 +1,13 @@
 import cv2
 import os
 import matplotlib.pyplot as plt
+import numpy as np
+
 from calibration_utils import calibrate_camera, undistort
 from binarization_utils import binarize
 from perspective_utils import birdeye
 from line_utils import get_fits_by_sliding_windows, draw_back_onto_the_road, Line, get_fits_by_previous_fits
-from moviepy.editor import VideoFileClip
-import numpy as np
+# from moviepy.editor import VideoFileClip
 from globals import xm_per_pix, time_window
 
 
@@ -14,7 +15,7 @@ processed_frames = 0                    # counter of frames processed (when proc
 line_lt = Line(buffer_len=time_window)  # line on the left of the lane
 line_rt = Line(buffer_len=time_window)  # line on the right of the lane
 
-
+# Menyatukan gambar untuk hasil akhir
 def prepare_out_blend_frame(blend_on_road, img_binary, img_birdeye, img_fit, line_lt, line_rt, offset_meter):
     """
     Prepare the final pretty pretty output blend, given all intermediate pipeline images
@@ -134,18 +135,9 @@ if __name__ == '__main__':
     ret, mtx, dist, rvecs, tvecs = calibrate_camera(calib_images_dir='camera_cal')
 
     # cam = cv2.VideoCapture('3_out_video.mp4')
-    cam = cv2.VideoCapture(0)
-    # cam.set(4, 1280)  # set Width
-    # cam.set(3, 720)  # set Height
+    cam = cv2.VideoCapture('5_test.mp4')
     cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
     cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-
-    # w = int(1280)
-    # h = int(720)
-    # pengurang = int(150)
-    # node_b = int(w-pengurang)
-    # node_c = int(w+pengurang)
-    # h_trap = int(h/2)
 
     if not cam.isOpened():
         print("Cannot open camera")
@@ -161,22 +153,17 @@ if __name__ == '__main__':
         result = process_pipeline(image)
 
         h, w = result.shape[:2]
-        pengurang = int(150)
+        pengurang = int(94)
         node_b = int(w/2-pengurang)
         node_c = int(w/2+pengurang)
-        h_trap = int(h/2)
+        h_trap = int(3/5*h)
         print(h,w,node_b,node_c)
-
 
         cv2.line(result,(0,int(h)-int(10)),(node_b,h_trap),(0,255,0),3) # Sisi A
         cv2.line(result,(node_b,h_trap),(node_c,h_trap,),(0,255,0),3) # Sisi node B-C
         cv2.line(result,(node_c,h_trap),(int(w),int(h)-int(10)),(0,255,0),3) # Sisi turun
 
         cv2.imshow("Result", result)
-        # cv2.imshow("Result", image)
-
-        # Debug
-        # cv2.imshow("Asal", image)
 
         if cv2.waitKey(1) & 0xFF == 27:
             print("Escape hit, closing...")
@@ -184,10 +171,3 @@ if __name__ == '__main__':
 
     cam.release()
     cv2.destroyAllWindows()
-
-
-    # selector = '2_project'
-    # clip = VideoFileClip('{}_video.mp4'.format(selector)).fl_image(process_pipeline)
-    # clip.write_videofile('out_{}_{}.mp4'.format(selector, time_window), audio=False)
-
-    

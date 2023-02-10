@@ -1,12 +1,13 @@
 import cv2
 import os
 import matplotlib.pyplot as plt
+import numpy as np
+
 from calibration_utils import calibrate_camera, undistort
 from binarization_utils import binarize
 from perspective_utils import birdeye
 from line_utils import get_fits_by_sliding_windows, draw_back_onto_the_road, Line, get_fits_by_previous_fits
 from moviepy.editor import VideoFileClip
-import numpy as np
 from globals import xm_per_pix, time_window
 
 
@@ -174,10 +175,8 @@ def process_pipeline(frame, keep_state=True):
     # stitch on the top of final output images from different steps of the pipeline
     blend_output = prepare_out_blend_frame(blend_on_road, img_binary, img_birdeye, img_fit, line_lt, line_rt, offset_meter)
 
-    print(offset_meter,offset_meter)
-
     # ikon mobil dan posisinya (x,y)
-    add_transparent_image(blend_output, offset_meter)
+    # add_transparent_image(blend_output, offset_meter)
 
     processed_frames += 1
 
@@ -190,29 +189,30 @@ if __name__ == '__main__':
      ret, mtx, dist, rvecs, tvecs = calibrate_camera(calib_images_dir='camera_cal')
      
      
-    #  mode = 'video'
-     mode = 'image'
+     mode = 'video'
+    #  mode = 'image'
 
      if mode == 'video':
-          selector = '3_out'
-          clip = VideoFileClip('{}_video.mp4'.format(selector)).fl_image(process_pipeline)
-          clip.write_videofile('out_{}_{}.mp4'.format(selector, time_window), audio=False)
+        filename = '10_test'
+        clip = VideoFileClip('{}.mp4'.format(filename)).fl_image(process_pipeline)
+        clip.write_videofile('out_videos/out_{}.mp4'.format(filename), audio=False)
 
      else:
 
-          test_img_dir = 'test_images\straight_lines1.jpg'
+        test_img_dir = 'test_images\straight_lines1.jpg'
 
-          frame = cv2.imread(test_img_dir)
+        frame = cv2.imread(test_img_dir)
 
-          blend = process_pipeline(frame, keep_state=True)
+        blend = process_pipeline(frame, keep_state=True)
 
-          # cv2.imwrite('output_images/1.jpg', blend)
+        # cv2.imwrite('output_images/1.jpg', blend)
 
-          cv2.imshow("Result", blend)
-          plt.imshow(cv2.cvtColor(blend, code=cv2.COLOR_BGR2RGB))
-          plt.show()
+        cv2.imshow("Result", blend)
+        plt.imshow(cv2.cvtColor(blend, code=cv2.COLOR_BGR2RGB))
+        plt.show()
 
-        # test_img_dir = 'test_images'
+        # 1 FOLDER
+        # test_img_dir = 'jalanindo'
         # for test_img in os.listdir(test_img_dir):
 
         #     frame = cv2.imread(os.path.join(test_img_dir, test_img))
@@ -221,5 +221,6 @@ if __name__ == '__main__':
 
         #     cv2.imwrite('output_images/{}'.format(test_img), blend)
 
-        #     plt.imshow(cv2.cvtColor(blend, code=cv2.COLOR_BGR2RGB))
-        #     plt.show()
+        #     # plt.imshow(cv2.cvtColor(blend, code=cv2.COLOR_BGR2RGB))
+        #     # plt.show()
+        # print("\nSudah selesai\n")

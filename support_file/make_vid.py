@@ -37,7 +37,7 @@ for image in images:
     image_path = os.path.join(dir_path, image)
     frame = cv2.imread(image_path)
 
-    out.write(frame) # Write out frame to video
+    # out.write(frame) # Write out frame to video
 
     cv2.imshow('video',frame)
     if (cv2.waitKey(1) & 0xFF) == ord('q'): # Hit `q` to exit

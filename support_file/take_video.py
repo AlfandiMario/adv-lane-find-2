@@ -8,7 +8,7 @@ cap.set(4, 720)
 
 width= int(1280)
 height= int(720)
-judul = '3_out_video.mp4'
+judul = '6_video.mp4'
 
 writer= cv2.VideoWriter(judul, cv2.VideoWriter_fourcc('m','p','4','v'), 20, (width,height))
 

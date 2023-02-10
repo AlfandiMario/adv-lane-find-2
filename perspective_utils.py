@@ -15,29 +15,34 @@ def birdeye(img, verbose=False):
     """
     h, w = img.shape[:2]
 
-    pengurang = int(94)
+    # pengurang = int(100)
+    # node_b = int(w/2-pengurang)
+    # node_c = int(w/2+pengurang)
+    # h_trap = int(320)
+
+    pengurang = int(w//12)
     node_b = int(w/2-pengurang)
     node_c = int(w/2+pengurang)
-    h_trap = int(h/2+100)
+    h_trap = int(11/15*h)
 
 
-    src = np.float32([[w, h-10],    # br
-                      [0, h-10],    # bl
-                      [node_b, h_trap],   # tl
-                      [node_c, h_trap]])  # tr
-    dst = np.float32([[w, h],       # br
-                      [0, h],       # bl
-                      [0, 0],       # tl
-                      [w, 0]])      # tr
-    
     # src = np.float32([[w, h-10],    # br
     #                   [0, h-10],    # bl
-    #                   [546, 460],   # tl
-    #                   [732, 460]])  # tr
+    #                   [node_b, h_trap],   # tl
+    #                   [node_c, h_trap]])  # tr
     # dst = np.float32([[w, h],       # br
     #                   [0, h],       # bl
     #                   [0, 0],       # tl
     #                   [w, 0]])      # tr
+    
+    src = np.float32([[w, h-10],    # br
+                      [0, h-10],    # bl
+                      [546, 460],   # tl
+                      [732, 460]])  # tr
+    dst = np.float32([[w, h],       # br
+                      [0, h],       # bl
+                      [0, 0],       # tl
+                      [w, 0]])      # tr
 
     M = cv2.getPerspectiveTransform(src, dst)
     Minv = cv2.getPerspectiveTransform(dst, src)
