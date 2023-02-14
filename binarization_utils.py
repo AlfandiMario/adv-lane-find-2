@@ -38,8 +38,9 @@ def thresh_frame_sobel(frame, kernel_size):
 
     sobel_mag = np.sqrt(sobel_x ** 2 + sobel_y ** 2)
     sobel_mag = np.uint8(sobel_mag / np.max(sobel_mag) * 255)
-
-    _, sobel_mag = cv2.threshold(sobel_mag, 50, 1, cv2.THRESH_BINARY)
+    # Original 50
+    # _, sobel_mag = cv2.threshold(sobel_mag, 50, 1, cv2.THRESH_BINARY)
+    _, sobel_mag = cv2.threshold(sobel_mag, 75, 1, cv2.THRESH_BINARY)
 
     return sobel_mag.astype(bool)
 
@@ -71,6 +72,7 @@ def binarize(img, verbose=False):
 
     # highlight yellow lines by threshold in HSV color space
     HSV_yellow_mask = thresh_frame_in_HSV(img, yellow_HSV_th_min, yellow_HSV_th_max, verbose=False)
+
     binary = np.logical_or(binary, HSV_yellow_mask)
 
     # highlight white lines by thresholding the equalized frame
@@ -121,4 +123,14 @@ if __name__ == '__main__':
     test_images = glob.glob('test_images/*.jpg')
     for test_image in test_images:
         img = cv2.imread(test_image)
-        binarize(img=img, verbose=True)
+        img = binarize(img=img, verbose=False)
+        cv2.imshow("Binary", img)
+
+        if cv2.waitKey(0) & 0xFF == 27:
+            print("Escape hit, closing...")
+            break
+
+    # img = cv2.imread('test_images/test6.jpg')
+    # result = binarize(img=img, verbose=False)
+    # cv2.imshow("Binary", result)
+    # cv2.waitKey(0)

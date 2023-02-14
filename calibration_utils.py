@@ -106,5 +106,10 @@ if __name__ == '__main__':
 
     img_undistorted = undistort(img, mtx, dist)
 
-    cv2.imwrite('img/test_calibration_before.jpg', img)
-    cv2.imwrite('img/test_calibration_after.jpg', img_undistorted)
+    cv2.imshow("Before", img)
+    cv2.imshow("After", img_undistorted)
+
+    cv2.waitKey(0) & 0xFF == 27
+
+    # cv2.imwrite('img/test_calibration_before.jpg', img)
+    # cv2.imwrite('img/test_calibration_after.jpg', img_undistorted)

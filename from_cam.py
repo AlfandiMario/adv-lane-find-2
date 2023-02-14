@@ -2,10 +2,13 @@ import cv2
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+from playsound import playsound
+from time import sleep
+import multiprocessing
 
 from calibration_utils import calibrate_camera, undistort
 from binarization_utils import binarize
-from perspective_utils import birdeye
+from perspective_utils import birdeye, trapesium
 from line_utils import get_fits_by_sliding_windows, draw_back_onto_the_road, Line, get_fits_by_previous_fits
 # from moviepy.editor import VideoFileClip
 from globals import xm_per_pix, time_window
@@ -110,8 +113,17 @@ def process_pipeline(frame, keep_state=True):
     img_birdeye, M, Minv = birdeye(img_binary, verbose=False)
 
     # fit 2-degree polynomial curve onto lane lines found
-    if processed_frames > 0 and keep_state and line_lt.detected and line_rt.detected:
-        line_lt, line_rt, img_fit = get_fits_by_previous_fits(img_birdeye, line_lt, line_rt, verbose=False)
+    # if processed_frames > 0  and keep_state and line_lt.detected and line_rt.detected:
+    #     line_lt, line_rt, img_fit = get_fits_by_previous_fits(img_birdeye, line_lt, line_rt, verbose=False)
+    # else:
+    #     line_lt, line_rt, img_fit = get_fits_by_sliding_windows(img_birdeye, line_lt, line_rt, n_windows=9, verbose=False)
+    # line_lt, line_rt, img_fit = get_fits_by_sliding_windows(img_birdeye, line_lt, line_rt, n_windows=9, verbose=False)
+    if keep_state and line_lt.detected and line_rt.detected:
+        if processed_frames < 16:
+            line_lt, line_rt, img_fit = get_fits_by_previous_fits(img_birdeye, line_lt, line_rt, verbose=False)
+        else:
+            line_lt, line_rt, img_fit = get_fits_by_sliding_windows(img_birdeye, line_lt, line_rt, n_windows=9, verbose=False)
+            processed_frames = 0
     else:
         line_lt, line_rt, img_fit = get_fits_by_sliding_windows(img_birdeye, line_lt, line_rt, n_windows=9, verbose=False)
 
@@ -126,18 +138,21 @@ def process_pipeline(frame, keep_state=True):
 
     processed_frames += 1
 
-    return blend_output
+    return blend_output, offset_meter
 
+def sound():
+    playsound('warning.mp3')
 
 if __name__ == '__main__':
 
     # first things first: calibrate the camera
     ret, mtx, dist, rvecs, tvecs = calibrate_camera(calib_images_dir='camera_cal')
 
-    # cam = cv2.VideoCapture('3_out_video.mp4')
-    cam = cv2.VideoCapture('5_test.mp4')
+    cam = cv2.VideoCapture('1_test_hard.mp4')
+
     cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
     cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+
 
     if not cam.isOpened():
         print("Cannot open camera")
@@ -146,22 +161,26 @@ if __name__ == '__main__':
     while True:
         _, image = cam.read()
 
+        # subproses = multiprocessing.Process(target = sound)
+
         if not _:
             print("Can't receive frame (stream end?). Exiting ...")
             break
         
-        result = process_pipeline(image)
+        result, offset = process_pipeline(image)
 
         h, w = result.shape[:2]
-        pengurang = int(94)
-        node_b = int(w/2-pengurang)
-        node_c = int(w/2+pengurang)
-        h_trap = int(3/5*h)
-        print(h,w,node_b,node_c)
 
-        cv2.line(result,(0,int(h)-int(10)),(node_b,h_trap),(0,255,0),3) # Sisi A
-        cv2.line(result,(node_b,h_trap),(node_c,h_trap,),(0,255,0),3) # Sisi node B-C
-        cv2.line(result,(node_c,h_trap),(int(w),int(h)-int(10)),(0,255,0),3) # Sisi turun
+        if offset >= 0.5:
+            # subproses.start()
+            # subproses.join()
+            playsound('warning.mp3')
+
+        node_a, node_b, node_c, node_d, h_trap = trapesium(h, w)
+
+        cv2.line(result,(node_a,int(h)-int(50)),(node_b,h_trap),(0,255,0),3) # Sisi A
+        cv2.line(result,(node_b,h_trap),(node_c,h_trap),(0,255,0),3) # Sisi node B-C
+        cv2.line(result,(node_c,h_trap),(node_d,int(h)-int(50)),(0,255,0),3) # Sisi turun
 
         cv2.imshow("Result", result)
 

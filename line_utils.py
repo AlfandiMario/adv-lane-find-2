@@ -234,7 +234,7 @@ def get_fits_by_previous_fits(birdeye_binary, line_lt, line_rt, verbose=False):
 
     :param birdeye_binary: input bird's eye view binary image
     :param line_lt: left lane-line previously detected
-    :param line_rt: left lane-line previously detected
+    :param line_rt: right lane-line previously detected
     :param verbose: if True, display intermediate output
     :return: updated lane lines and output image
     """
@@ -243,6 +243,9 @@ def get_fits_by_previous_fits(birdeye_binary, line_lt, line_rt, verbose=False):
 
     left_fit_pixel = line_lt.last_fit_pixel
     right_fit_pixel = line_rt.last_fit_pixel
+
+    if left_fit_pixel.any() == right_fit_pixel.any():
+        get_fits_by_sliding_windows(birdeye_binary, line_lt, line_rt, n_windows=9, verbose=False)
 
     nonzero = birdeye_binary.nonzero()
     nonzero_y = np.array(nonzero[0])
@@ -350,8 +353,8 @@ def draw_back_onto_the_road(img_undistorted, Minv, line_lt, line_rt, keep_state)
 
     # now separately draw solid lines to highlight them
     line_warp = np.zeros_like(img_undistorted)
-    line_warp = line_lt.draw(line_warp, color=(255, 0, 0), average=keep_state)
-    line_warp = line_rt.draw(line_warp, color=(0, 0, 255), average=keep_state)
+    line_warp = line_lt.draw(line_warp, color=(255, 0, 0), average=keep_state) #Garis kiri biru
+    line_warp = line_rt.draw(line_warp, color=(0, 0, 255), average=keep_state) #Garis kanan merah
     line_dewarped = cv2.warpPerspective(line_warp, Minv, (width, height))
 
     lines_mask = blend_onto_road.copy()

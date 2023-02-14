@@ -5,6 +5,27 @@ import matplotlib.pyplot as plt
 from calibration_utils import calibrate_camera, undistort
 from binarization_utils import binarize
 
+def trapesium(h, w):
+    # pengurang = int(w//20)
+    # node_b = int(w/2-pengurang+20)
+    # node_c = int(w/2+pengurang+80)
+    # h_trap = int(500)
+
+    # 3_test
+    # pengurang = int(w//14)
+    # node_b = int(w/2-pengurang)
+    # node_c = int(w/2+pengurang)
+    # h_trap = int(420)
+
+    # 7_test
+    pengurang = int(w//20)
+    node_a = int(150)
+    node_b = int(w/2-pengurang+20)
+    node_c = int(w/2+pengurang+60)
+    node_d = w-50
+    h_trap = int(510)
+    
+    return node_a, node_b, node_c, node_d, h_trap
 
 def birdeye(img, verbose=False):
     """
@@ -15,34 +36,27 @@ def birdeye(img, verbose=False):
     """
     h, w = img.shape[:2]
 
-    # pengurang = int(100)
-    # node_b = int(w/2-pengurang)
-    # node_c = int(w/2+pengurang)
-    # h_trap = int(320)
+    node_a, node_b, node_c, node_d, h_trap = trapesium(h, w)
 
-    pengurang = int(w//12)
-    node_b = int(w/2-pengurang)
-    node_c = int(w/2+pengurang)
-    h_trap = int(11/15*h)
-
-
-    # src = np.float32([[w, h-10],    # br
-    #                   [0, h-10],    # bl
-    #                   [node_b, h_trap],   # tl
-    #                   [node_c, h_trap]])  # tr
-    # dst = np.float32([[w, h],       # br
-    #                   [0, h],       # bl
-    #                   [0, 0],       # tl
-    #                   [w, 0]])      # tr
-    
-    src = np.float32([[w, h-10],    # br
-                      [0, h-10],    # bl
-                      [546, 460],   # tl
-                      [732, 460]])  # tr
+    src = np.float32([[node_d, h-50],    # br
+                      [node_a, h-50],    # bl
+                      [node_b, h_trap],   # tl
+                      [node_c, h_trap]])  # tr
     dst = np.float32([[w, h],       # br
                       [0, h],       # bl
                       [0, 0],       # tl
                       [w, 0]])      # tr
+    
+    
+
+    # src = np.float32([[w, h-10],    # br
+    #                   [0, h-10],    # bl
+    #                   [546, 460],   # tl
+    #                   [732, 460]])  # tr
+    # dst = np.float32([[w, h],       # br
+    #                   [0, h],       # bl
+    #                   [0, 0],       # tl
+    #                   [w, 0]])      # tr
 
     M = cv2.getPerspectiveTransform(src, dst)
     Minv = cv2.getPerspectiveTransform(dst, src)
@@ -65,6 +79,8 @@ def birdeye(img, verbose=False):
         plt.show()
 
     return warped, M, Minv
+
+
 
 
 if __name__ == '__main__':
