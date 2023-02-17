@@ -144,15 +144,19 @@ def sound():
     playsound('warning.mp3')
 
 if __name__ == '__main__':
-
     # first things first: calibrate the camera
     ret, mtx, dist, rvecs, tvecs = calibrate_camera(calib_images_dir='camera_cal')
 
-    cam = cv2.VideoCapture('1_test_hard.mp4')
+    # Coba dari Video
+    cam = cv2.VideoCapture('drive 7.mp4')
+
+    # Coba dari live camera
+    # cam = cv2.VideoCapture(0)
 
     cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
     cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-
+    
+    subproses = multiprocessing.Process(target = sound)
 
     if not cam.isOpened():
         print("Cannot open camera")
@@ -160,8 +164,6 @@ if __name__ == '__main__':
 
     while True:
         _, image = cam.read()
-
-        # subproses = multiprocessing.Process(target = sound)
 
         if not _:
             print("Can't receive frame (stream end?). Exiting ...")
@@ -171,13 +173,14 @@ if __name__ == '__main__':
 
         h, w = result.shape[:2]
 
-        if offset >= 0.5:
-            # subproses.start()
-            # subproses.join()
-            playsound('warning.mp3')
+        # Menyalakan alarm warning
+        # if offset >= 0.5:
+        #     # subproses.run()
+        #     # subproses.join()
+        #     playsound('warning.mp3')
 
+        # Menggambar garis trapesium ROI
         node_a, node_b, node_c, node_d, h_trap = trapesium(h, w)
-
         cv2.line(result,(node_a,int(h)-int(50)),(node_b,h_trap),(0,255,0),3) # Sisi A
         cv2.line(result,(node_b,h_trap),(node_c,h_trap),(0,255,0),3) # Sisi node B-C
         cv2.line(result,(node_c,h_trap),(node_d,int(h)-int(50)),(0,255,0),3) # Sisi turun
@@ -190,3 +193,4 @@ if __name__ == '__main__':
 
     cam.release()
     cv2.destroyAllWindows()
+    

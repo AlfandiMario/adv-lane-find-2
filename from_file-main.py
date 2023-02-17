@@ -2,6 +2,7 @@ import cv2
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+from playsound import playsound
 
 from calibration_utils import calibrate_camera, undistort
 from binarization_utils import binarize
@@ -108,11 +109,6 @@ def process_pipeline(frame, keep_state=True):
     img_birdeye, M, Minv = birdeye(img_binary, verbose=False)
 
     # fit 2-degree polynomial curve onto lane lines found
-    # if processed_frames > 0  and keep_state and line_lt.detected and line_rt.detected:
-    #     line_lt, line_rt, img_fit = get_fits_by_previous_fits(img_birdeye, line_lt, line_rt, verbose=False)
-    # else:
-    #     line_lt, line_rt, img_fit = get_fits_by_sliding_windows(img_birdeye, line_lt, line_rt, n_windows=9, verbose=False)
-    # line_lt, line_rt, img_fit = get_fits_by_sliding_windows(img_birdeye, line_lt, line_rt, n_windows=9, verbose=False)
     if keep_state and line_lt.detected and line_rt.detected:
         if processed_frames < 16:
             line_lt, line_rt, img_fit = get_fits_by_previous_fits(img_birdeye, line_lt, line_rt, verbose=False)
@@ -124,7 +120,7 @@ def process_pipeline(frame, keep_state=True):
 
     # compute offset in meter from center of the lane
     offset_meter = compute_offset_from_center(line_lt, line_rt, frame_width=frame.shape[1])
-
+    
     # draw the surface enclosed by lane lines back onto the original frame
     blend_on_road = draw_back_onto_the_road(img_undistorted, Minv, line_lt, line_rt, keep_state)
 
@@ -134,6 +130,7 @@ def process_pipeline(frame, keep_state=True):
     processed_frames += 1
 
     return blend_output
+
 
 if __name__ == '__main__':
 
@@ -145,11 +142,14 @@ if __name__ == '__main__':
     #  mode = 'image'
 
      if mode == 'video':
-        filename = '1_test_hard.mp4'
+        filename = 'drive 8.mp4'
         clip = VideoFileClip('{}'.format(filename)).fl_image(process_pipeline)
-        clip.write_videofile('out_videos/out_{}'.format(filename), audio=False)
+        clip.write_videofile('out_videos/{}'.format(filename), audio=False)
 
      else:
+        
+        # *** 1/1 File ***
+        # -------------------------
         test_img_dir = 'test_images\straight_lines1.jpg'
         frame = cv2.imread(test_img_dir)
         blend = process_pipeline(frame, keep_state=True)
@@ -158,7 +158,8 @@ if __name__ == '__main__':
         plt.imshow(cv2.cvtColor(blend, code=cv2.COLOR_BGR2RGB))
         plt.show()
 
-        # 1 FOLDER
+        # *** Langsung 1 Folder ***
+        # ----------------------------
         # test_img_dir = 'jalanindo'
         # for test_img in os.listdir(test_img_dir):
         #     frame = cv2.imread(os.path.join(test_img_dir, test_img))
