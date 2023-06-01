@@ -95,7 +95,7 @@ class Line:
         return ((1 + (2 * coeffs[0] * y_eval + coeffs[1]) ** 2) ** 1.5) / np.absolute(2 * coeffs[0])
 
 
-def get_fits_by_sliding_windows(birdeye_binary, line_lt, line_rt, n_windows=9, verbose=False):
+def get_fits_by_sliding_windows(birdeye_binary, line_lt, line_rt, n_windows=9, verbose=True):
     """
     Get polynomial coefficients for lane-lines detected in an binary image.
 
@@ -215,12 +215,15 @@ def get_fits_by_sliding_windows(birdeye_binary, line_lt, line_rt, n_windows=9, v
     if verbose:
         f, ax = plt.subplots(1, 2)
         f.set_facecolor('white')
+        ax[0].set_title('Before')
         ax[0].imshow(birdeye_binary, cmap='gray')
         ax[1].imshow(out_img)
+        ax[1].set_title('After')
         ax[1].plot(left_fitx, ploty, color='yellow')
         ax[1].plot(right_fitx, ploty, color='yellow')
-        ax[1].set_xlim(0, 1280)
-        ax[1].set_ylim(720, 0)
+        # Kalau di komen maka dimensi hasil plotting mengikuti gambar asli
+        # ax[1].set_xlim(0,1764)
+        # ax[1].set_ylim(720, 0)
 
         plt.show()
 
@@ -373,18 +376,26 @@ if __name__ == '__main__':
     ret, mtx, dist, rvecs, tvecs = calibrate_camera(calib_images_dir='camera_cal')
 
     # show result on test images
-    for test_img in glob.glob('test_images/*.jpg'):
+    # for test_img in glob.glob('test_images/*.jpg'):
+    #     img = cv2.imread(test_img)
+    #     img_undistorted = undistort(img, mtx, dist, verbose=False)
+    #     img_binary = binarize(img_undistorted, verbose=False)
+    #     img_birdeye, M, Minv = birdeye(img_binary, verbose=False)
+    #     line_lt, line_rt, img_out = get_fits_by_sliding_windows(img_birdeye, line_lt, line_rt, n_windows=7, verbose=True)
+   
+    # show result for 1 file
+    img = cv2.imread('test_images\drive8b.png')
+    img_undistorted = undistort(img, mtx, dist, verbose=False)
+    img_binary = binarize(img_undistorted, verbose=False)
+    img_birdeye, M, Minv = birdeye(img_binary, verbose=False)
+    line_lt, line_rt, img_out = get_fits_by_sliding_windows(img_birdeye, line_lt, line_rt, n_windows=7, verbose=True)
+    
+    # Hanya bisa untuk video
+    # line_lt, line_rt, img_out = get_fits_by_previous_fits(img_birdeye, line_lt, line_rt, verbose=True)
 
-        img = cv2.imread(test_img)
-
-        img_undistorted = undistort(img, mtx, dist, verbose=False)
-
-        img_binary = binarize(img_undistorted, verbose=False)
-
-        img_birdeye, M, Minv = birdeye(img_binary, verbose=False)
-
-        line_lt, line_rt, img_out = get_fits_by_sliding_windows(img_birdeye, line_lt, line_rt, n_windows=7, verbose=True)
-
+    draw_back = draw_back_onto_the_road(img_undistorted, Minv, line_lt, line_rt, keep_state=True)
+    cv2.imshow("Draw Back", draw_back)
+    cv2.waitKey(0)
 
 
 

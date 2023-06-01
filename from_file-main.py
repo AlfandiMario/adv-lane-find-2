@@ -6,7 +6,7 @@ from playsound import playsound
 
 from calibration_utils import calibrate_camera, undistort
 from binarization_utils import binarize
-from perspective_utils import birdeye, trapesium
+from perspective_utils import birdeye, trapesium_v1, trapesium_ori
 from line_utils import get_fits_by_sliding_windows, draw_back_onto_the_road, Line, get_fits_by_previous_fits
 from moviepy.editor import VideoFileClip
 from globals import xm_per_pix, time_window
@@ -31,7 +31,7 @@ def prepare_out_blend_frame(blend_on_road, img_binary, img_birdeye, img_fit, lin
     """
     h, w = blend_on_road.shape[:2]
 
-    thumb_ratio = 0.2
+    thumb_ratio = 0.15
     thumb_h, thumb_w = int(thumb_ratio * h), int(thumb_ratio * w)
 
     off_x, off_y = 20, 15
@@ -58,8 +58,9 @@ def prepare_out_blend_frame(blend_on_road, img_binary, img_birdeye, img_fit, lin
     # add text (curvature and offset info) on the upper right of the blend
     mean_curvature_meter = np.mean([line_lt.curvature_meter, line_rt.curvature_meter])
     font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.putText(blend_on_road, 'Curvature radius: {:.02f}m'.format(mean_curvature_meter), (860, 60), font, 0.9, (255, 255, 255), 2, cv2.LINE_AA)
-    cv2.putText(blend_on_road, 'Offset from center: {:.02f}m'.format(offset_meter), (860, 130), font, 0.9, (255, 255, 255), 2, cv2.LINE_AA)
+    # cv2.putText(blend_on_road, 'Curvature radius: {:.02f}m'.format(mean_curvature_meter), (860, 60), font, 0.9, (255, 255, 255), 2, cv2.LINE_AA)
+    # cv2.putText(blend_on_road, 'Offset from center: {:.02f}m'.format(offset_meter), (860, 130), font, 0.9, (255, 255, 255), 2, cv2.LINE_AA)
+    cv2.putText(blend_on_road, 'Offset from center: {:.02f}m'.format(offset_meter), (800, 40), font, 0.9, (255, 255, 255), 2, cv2.LINE_AA)
 
     return blend_on_road
 
@@ -142,7 +143,7 @@ if __name__ == '__main__':
     #  mode = 'image'
 
      if mode == 'video':
-        filename = 'drive 8.mp4'
+        filename = '7_test.mp4'
         clip = VideoFileClip('{}'.format(filename)).fl_image(process_pipeline)
         clip.write_videofile('out_videos/{}'.format(filename), audio=False)
 

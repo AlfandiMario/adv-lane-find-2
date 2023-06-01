@@ -1,0 +1,11 @@
+Test Videos 
+- 6_test harus diubah roi 
+- 11_test aman
+- 12 test aman, tapi kalau mau maksimal diubah ROI node_c lebih tinggi daripada node_b 
+- project_video aman 
+- 3_test digunakan untuk pembuktian pengaruh angle kamera ke ROI
+- 7 test aman
+
+
+* Perubahan jumlah refresh tiap processed_frames belum terlihat perbedaannya
+* out12 per 9pf, out12b per 25pf

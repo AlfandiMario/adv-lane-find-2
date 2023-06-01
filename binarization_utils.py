@@ -41,7 +41,7 @@ def thresh_frame_sobel(frame, kernel_size):
 
     # Tingkat trheshold (awalnya 50)
     # _, sobel_mag = cv2.threshold(sobel_mag, 50, 1, cv2.THRESH_BINARY)
-    _, sobel_mag = cv2.threshold(sobel_mag, 90, 1, cv2.THRESH_BINARY)
+    _, sobel_mag = cv2.threshold(sobel_mag, 80, 1, cv2.THRESH_BINARY)
 
     return sobel_mag.astype(bool)
 
@@ -59,7 +59,7 @@ def get_binary_from_equalized_grayscale(frame):
     return th
 
 
-def binarize(img, verbose=False):
+def binarize(img, verbose):
     """
     Convert an input frame to a binary image which highlight as most as possible the lane-lines.
 
@@ -94,7 +94,7 @@ def binarize(img, verbose=False):
         ax[0, 0].imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
         ax[0, 0].set_title('input_frame')
         ax[0, 0].set_axis_off()
-        ax[0, 0].set_axis_bgcolor('red')
+        # ax[0, 0].set_axis_bgcolor('red')
         ax[0, 1].imshow(eq_white_mask, cmap='gray')
         ax[0, 1].set_title('white mask')
         ax[0, 1].set_axis_off()
@@ -121,17 +121,19 @@ def binarize(img, verbose=False):
 
 if __name__ == '__main__':
 
-    test_images = glob.glob('test_images/*.jpg')
-    for test_image in test_images:
-        img = cv2.imread(test_image)
-        img = binarize(img=img, verbose=False)
-        cv2.imshow("Binary", img)
+    # test_images = glob.glob('test_images/*.jpg')
+    # for test_image in test_images:
+    #     img = cv2.imread(test_image)
+    #     img = binarize(img=img, verbose=False)
+    #     cv2.imshow("Binary", img)
 
-        if cv2.waitKey(0) & 0xFF == 27:
-            print("Escape hit, closing...")
-            break
+    #     if cv2.waitKey(0) & 0xFF == 27:
+    #         print("Escape hit, closing...")
+    #         break
 
-    # img = cv2.imread('test_images/test6.jpg')
-    # result = binarize(img=img, verbose=False)
+    img = cv2.imread('test_images\drive8.png')
+    result = binarize(img=img, verbose=True)
     # cv2.imshow("Binary", result)
     # cv2.waitKey(0)
+    plt.imshow(result, cmap="gray")
+    plt.show()

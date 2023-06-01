@@ -102,7 +102,7 @@ if __name__ == '__main__':
 
     ret, mtx, dist, rvecs, tvecs = calibrate_camera(calib_images_dir='camera_cal')
 
-    img = cv2.imread('test_images/test2.jpg')
+    img = cv2.imread('test_images/test3.jpg')
 
     img_undistorted = undistort(img, mtx, dist)
 

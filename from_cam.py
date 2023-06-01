@@ -1,16 +1,15 @@
 import cv2
-import os
 import matplotlib.pyplot as plt
 import numpy as np
 from playsound import playsound
 from time import sleep
+import time
 import multiprocessing
 
 from calibration_utils import calibrate_camera, undistort
 from binarization_utils import binarize
-from perspective_utils import birdeye, trapesium
+from perspective_utils import birdeye, trapesium_custom, trapesium_v1, trapesium_ori
 from line_utils import get_fits_by_sliding_windows, draw_back_onto_the_road, Line, get_fits_by_previous_fits
-# from moviepy.editor import VideoFileClip
 from globals import xm_per_pix, time_window
 
 
@@ -34,7 +33,8 @@ def prepare_out_blend_frame(blend_on_road, img_binary, img_birdeye, img_fit, lin
     """
     h, w = blend_on_road.shape[:2]
 
-    thumb_ratio = 0.2
+    # thumb_ratio = 0.2
+    thumb_ratio = 0.15
     thumb_h, thumb_w = int(thumb_ratio * h), int(thumb_ratio * w)
 
     off_x, off_y = 20, 15
@@ -61,8 +61,9 @@ def prepare_out_blend_frame(blend_on_road, img_binary, img_birdeye, img_fit, lin
     # add text (curvature and offset info) on the upper right of the blend
     mean_curvature_meter = np.mean([line_lt.curvature_meter, line_rt.curvature_meter])
     font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.putText(blend_on_road, 'Curvature radius: {:.02f}m'.format(mean_curvature_meter), (860, 60), font, 0.9, (255, 255, 255), 2, cv2.LINE_AA)
-    cv2.putText(blend_on_road, 'Offset from center: {:.02f}m'.format(offset_meter), (860, 130), font, 0.9, (255, 255, 255), 2, cv2.LINE_AA)
+    # cv2.putText(blend_on_road, 'Curvature radius: {:.02f}m'.format(mean_curvature_meter), (860, 60), font, 0.9, (255, 255, 255), 2, cv2.LINE_AA)
+    # cv2.putText(blend_on_road, 'Offset from center: {:.02f}m'.format(offset_meter), (860, 130), font, 0.9, (255, 255, 255), 2, cv2.LINE_AA)
+    cv2.putText(blend_on_road, 'Offset from center: {:.02f}m'.format(offset_meter), (800, 40), font, 0.9, (255, 255, 255), 2, cv2.LINE_AA)
 
     return blend_on_road
 
@@ -89,7 +90,6 @@ def compute_offset_from_center(line_lt, line_rt, frame_width):
         offset_meter = xm_per_pix * offset_pix
     else:
         offset_meter = -1
-
     return offset_meter
 
 
@@ -135,6 +135,7 @@ def process_pipeline(frame, keep_state=True):
 
     # stitch on the top of final output images from different steps of the pipeline
     blend_output = prepare_out_blend_frame(blend_on_road, img_binary, img_birdeye, img_fit, line_lt, line_rt, offset_meter)
+    # blend_output = prepare_out_blend_frame(img_undistorted, img_binary, img_birdeye, img_fit, line_lt, line_rt, offset_meter)
 
     processed_frames += 1
 
@@ -148,30 +149,50 @@ if __name__ == '__main__':
     ret, mtx, dist, rvecs, tvecs = calibrate_camera(calib_images_dir='camera_cal')
 
     # Coba dari Video
-    cam = cv2.VideoCapture('drive 7.mp4')
+    cam = cv2.VideoCapture('test_videos/9_test.mp4')
 
     # Coba dari live camera
     # cam = cv2.VideoCapture(0)
 
-    cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    # cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    # cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
     
-    subproses = multiprocessing.Process(target = sound)
+    # Untuk alarm
+    # subproses = multiprocessing.Process(target = sound)
+
+    # Hitung FPS
+    # Record waktu ketika frame terakhir diproses
+    prev_frame_time = 0
+    # Record waktu ketika frame saat ini diproses
+    new_frame_time = 0
+    # Record jumlah FPS keseluruhan
+    sum_fps = 0
+    sum_frame = 0
 
     if not cam.isOpened():
         print("Cannot open camera")
         exit()
 
     while True:
-        _, image = cam.read()
+        _, result= cam.read()
 
         if not _:
             print("Can't receive frame (stream end?). Exiting ...")
             break
         
-        result, offset = process_pipeline(image)
+        result, offset = process_pipeline(result)
 
-        h, w = result.shape[:2]
+        # Hitung FPS
+        font = cv2.FONT_HERSHEY_SIMPLEX  #font to apply on text
+        new_frame_time = time.time() 
+        fps = 1/(new_frame_time-prev_frame_time)
+        prev_frame_time = new_frame_time
+        fps = float(fps)
+        fps = round(fps,2)
+        cv2.putText(result, str(fps), (50, 50), font, 1, (0, 0, 255), 2) # add text on frame
+        
+        sum_frame +=1
+        sum_fps += fps
 
         # Menyalakan alarm warning
         # if offset >= 0.5:
@@ -180,12 +201,15 @@ if __name__ == '__main__':
         #     playsound('warning.mp3')
 
         # Menggambar garis trapesium ROI
-        node_a, node_b, node_c, node_d, h_trap = trapesium(h, w)
-        cv2.line(result,(node_a,int(h)-int(50)),(node_b,h_trap),(0,255,0),3) # Sisi A
-        cv2.line(result,(node_b,h_trap),(node_c,h_trap),(0,255,0),3) # Sisi node B-C
-        cv2.line(result,(node_c,h_trap),(node_d,int(h)-int(50)),(0,255,0),3) # Sisi turun
+        # h, w = result.shape[:2]
+        # # node_a, node_b, node_c, node_d, h_trap, b_trap = trapesium_v1(h, w)
+        # node_a, node_b, node_c, node_d, h_trap, b_trap = trapesium_custom(h, w)
+        # cv2.line(result,(node_a,b_trap),(node_b,h_trap),(0,255,0),3) # Sisi A
+        # cv2.line(result,(node_b,h_trap),(node_c,h_trap),(0,255,0),3) # Sisi node B-C
+        # cv2.line(result,(node_c,h_trap),(node_d,b_trap),(0,255,0),3) # Sisi turun
 
         cv2.imshow("Result", result)
+
 
         if cv2.waitKey(1) & 0xFF == 27:
             print("Escape hit, closing...")
@@ -193,4 +217,7 @@ if __name__ == '__main__':
 
     cam.release()
     cv2.destroyAllWindows()
-    
+    print("Jumlah FPS : ",sum_fps)
+    print("Jumlah Frame: ",sum_frame)
+    avg_fps = sum_fps/sum_frame
+    print("Avg FPS : ",avg_fps)
